@@ -41,12 +41,21 @@ public class Svd {
     public Matrix[] getMatU () {
         return matU;
     }
+    public Matrix getMatU (int color) {
+        return matU[color];
+    }
 
     public Matrix[] getMatV () {
         return matV;
     }
+    public Matrix getMatV (int color) {
+        return matV[color];
+    }
     
     public Matrix[] getMatS () {
         return matS;
+    }
+    public Matrix getMatS (int color) {
+        return matS[color];
     }
 }

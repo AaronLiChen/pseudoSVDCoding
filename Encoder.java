@@ -10,36 +10,39 @@ public class Encoder {
         int width = 160;
         int height = 128;
         int totalFrames = 300;
+
+        // prepare to read YCbCr
         String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv");
         ArrayList<Picture> picList = new ArrayList<>(); // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
-
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
+        // read YCbCr
         rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
 
-        // String wFilename = new String("TreesW.yuv");
+        // prepare to write YCbCr
         WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        // wYCbCr.writePic(wFilename, width, height, totalFrames, picList);
 
         int gopSize = 60;
-        MatrixPermutation matrixPerBase = new MatrixPermutation(gopSize, width, height, true);
-        // first, stack gopSize pictures into one matrix -- stackedPicMatBase
-        Matrix[] stackedPicMatBase = matrixPerBase.matrixLineByLine(picList, 0);
+        // first, stack gopSize pictures into one matrix -- stackedPicMatBase with (width*height) rows and gopSize cols
+        StackGops stackedGopBase = new StackGops(width * height, gopSize, true);
+        stackedGopBase.matrixLineByLine(picList, 0);
         // second, svd this stackedPicMatBase matrix
-        Svd svdResultBase = new Svd(stackedPicMatBase, true);
-        // third, reshape U and V matrix
-        Matrix[] stackedUVMatBase = matrixPerBase.matrixStackUV(svdResultBase.getMatU(), svdResultBase.getMatV());
-        String wFilename = new String("U.txt");
-        wYCbCr.writeTxt(wFilename, svdResultBase.getMatU()[1]);
-        wFilename = new String("V.txt");
-        wYCbCr.writeTxt(wFilename, svdResultBase.getMatV()[1]);
-        wFilename = new String("stackedUV.txt");
-        wYCbCr.writeTxt(wFilename, stackedUVMatBase[1]);
+        Svd svdResultBase = new Svd(stackedGopBase.getPermutedMatrix(), true);
+        // third, reshape U and V matrix -- reshapedProductUVBase with (width*height*gopSize) rows and gopSize cols
+        MatrixPermutation reshapedProductUVBase = new ReshapeProductUV(width * height * gopSize, gopSize, true);
+        reshapedProductUVBase.permuteMatrix(svdResultBase.getMatU(), svdResultBase.getMatV());
+        // fourth, inverse reshapedProductUVBase
+        MatrixPermutation inverseProductUVBase = new Inverse(gopSize, gopSize, true);
+        inverseProductUVBase.permuteMatrix(reshapedProductUVBase.getPermutedMatrix());
 
-        MatrixPermutation matrixPer = new MatrixPermutation(gopSize, width, height, true);
-        Matrix[] stackedPicMat = null, stackedOneColMat = null;
-        for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
-            stackedPicMat = matrixPer.matrixLineByLine(picList, gopNo * gopSize);
-            stackedOneColMat = matrixPer.matrixStackToOneCol(stackedPicMat);
+        // prepare to read following YCbCr
+        StackGops stackedGop = new StackGops(width * height, gopSize, true);
+        // prepare to stack gop matrix to one-col vector with (width*height*gopSize) rows
+        MatrixPermutation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, true);
+        for (int gopNo = 1; gopNo < 2; gopNo++) {
+            // read following YCbCr
+            stackedGop.matrixLineByLine(picList, gopNo * gopSize);
+            // stack gop matrix to one-col vector
+            stackedToOneColVector.permuteMatrix(stackedGop.getPermutedMatrix());
         }
 
         
