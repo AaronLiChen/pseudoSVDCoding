@@ -114,8 +114,8 @@ public class Psvd {
         Matrix[] diagMat = diag.getMatrix();
 
         tempDiffMat[color] = stackedToOneColMat[color].minus(reshapedProductUVBaseMat[color].times(diagMat[color])).plus(lambdaMat[color].times(1.0/beta[color]));
-        FindAndModify.findModifyLessThan(residueMat[color], tempDiffMat[color], beta[color], codeCbCr);
-        FindAndModify.findModifyMoreThan(residueMat[color], tempDiffMat[color], beta[color], codeCbCr);
+        FindAndModify.findModifyLessThan(residueMat[color], tempDiffMat[color], beta[color]);
+        FindAndModify.findModifyMoreThan(residueMat[color], tempDiffMat[color], beta[color]);
 
         // test
         // if (color == 0) {
@@ -180,7 +180,7 @@ public class Psvd {
         // }
 
         if (diff < tolerance) {
-            System.out.println(" Color: "+color);
+            System.out.println("Color: "+color);
             System.out.println("iterating times = "+iter[color]);
             System.out.println("Norm2Diff = "+diff);
             System.out.println("Norm1 = "+residueMat[color].norm1()+"\n\n");
@@ -214,6 +214,11 @@ public class Psvd {
             solveD(0);
             updatePara(0);
             convergedY = judgeConverge(0);
+
+            // test 
+            // if (iter[0] == 11) {
+            //     convergedY = true;
+            // }
         }
 
         if (codeCbCr) {

@@ -4,7 +4,6 @@ import Jama.Matrix;
 import java.util.*;
 
 public class Inverse extends MatrixCreationAndOperation {
-    private Matrix coeffMat = new Matrix(1, 1, 255*255);
 
     public Inverse (int matHeight, int matWidth, boolean codeCbCr) {
         super(matHeight, matWidth, codeCbCr);
@@ -13,7 +12,8 @@ public class Inverse extends MatrixCreationAndOperation {
     
     public void operateMatrix(Matrix[]... srcs) {
         if (true) {
-            double cf = coeffMat.get(0, 0);
+            Matrix[] coeffMat = srcs[0];
+            double cf = coeffMat[0].get(0, 0);
             super.mat[0] = Matrix.identity(super.matHeight, super.matWidth).timesEquals(cf);
             if (super.codeCbCr) {
                 super.mat[1] = Matrix.identity(super.matHeightC, super.matWidthC).timesEquals(cf);

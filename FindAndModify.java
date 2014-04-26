@@ -12,24 +12,24 @@ public class FindAndModify {
             return (value / Math.abs(value));
         }
     }
-    public static void findModifyLessThan (Matrix modifyTarget, Matrix findTarget, double beta, boolean codeCbCr) {
+    public static void findModifyLessThan (Matrix modifyTarget, Matrix findTarget, double beta) {
         double [][] findTar = findTarget.getArray();
         double [][] modifyTar = modifyTarget.getArray();
         for (int row = 0; row < findTarget.getRowDimension(); row++) {
             for (int col = 0; col < findTarget.getColumnDimension(); col++) {
-                if (findTar[row][col] < 1.0 / beta) {
-                    modifyTar[row][col] = 0; 
+                if (Math.abs(findTar[row][col]) < 1.0 / beta) {
+                    modifyTar[row][col] = 0.0; 
                 }
             }
         }
     }
 
-    public static void findModifyMoreThan (Matrix modifyTarget, Matrix findTarget, double beta, boolean codeCbCr) {
+    public static void findModifyMoreThan (Matrix modifyTarget, Matrix findTarget, double beta) {
         double [][] findTar = findTarget.getArray();
         double [][] modifyTar = modifyTarget.getArray();
         for (int row = 0; row < findTarget.getRowDimension(); row++) {
             for (int col = 0; col < findTarget.getColumnDimension(); col++) {
-                if (findTar[row][col] > 1.0 / beta) {
+                if (Math.abs(findTar[row][col]) > 1.0 / beta) {
                     modifyTar[row][col] = findTar[row][col] - 1.0 / beta * showSign(findTar[row][col]); 
                 }
             }
