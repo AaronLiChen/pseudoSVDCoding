@@ -52,7 +52,7 @@ public class Encoder {
         inverseProductUVBase.operateMatrix(coeffMat);
 
         // test
-        // int testColor = 0;
+        // int testColor = 2;
         // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
         // String wFilename = new String("stackedGopBase.txt");
         // wYCbCr.writeTxt(wFilename, stackedGopBase.getMatrix()[testColor]);
@@ -69,7 +69,7 @@ public class Encoder {
         MatrixCreationAndOperation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         // prepare to psvd
         Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
-        for (int gopNo = 1; gopNo < 2; gopNo++) {
+        for (int gopNo = 1; gopNo < 3; gopNo++) {
             // read following YCbCr
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
             // stack gop matrix to one-col vector
@@ -85,7 +85,7 @@ public class Encoder {
             // test
             // int testColor = 0;
             // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-            // String wFilename = new String("inverseProductUVBase.txt");
+            // wFilename = new String("inverseProductUVBase.txt");
             // wYCbCr.writeTxt(wFilename, inverseProductUVBase.getMatrix()[testColor]);
             // wFilename = new String("stackedGop.txt");
             // wYCbCr.writeTxt(wFilename, stackedGop.getMatrix()[testColor]);

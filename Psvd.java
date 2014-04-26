@@ -118,15 +118,15 @@ public class Psvd {
         FindAndModify.findModifyMoreThan(residueMat[color], tempDiffMat[color], beta[color]);
 
         // test
-        // if (color == 0) {
-        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        //     String wFilename = new String("lambdaMat.txt");
-        //     wYCbCr.writeTxt(wFilename, lambdaMat[color]);
-        //     wFilename = new String("residueMat.txt");
-        //     wYCbCr.writeTxt(wFilename, residueMat[color]);
-        //     wFilename = new String("tempDiffMat.txt");
-        //     wYCbCr.writeTxt(wFilename, tempDiffMat[color]);
-        // }
+        if (color == 2) {
+            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+            String wFilename = new String("lambdaMat.txt");
+            wYCbCr.writeTxt(wFilename, lambdaMat[color]);
+            wFilename = new String("residueMat.txt");
+            wYCbCr.writeTxt(wFilename, residueMat[color]);
+            wFilename = new String("tempDiffMat.txt");
+            wYCbCr.writeTxt(wFilename, tempDiffMat[color]);
+        }
 
     }
 
@@ -140,11 +140,11 @@ public class Psvd {
         diagMat[color] = leftTerm.plus(rightTerm);
 
         // test
-        // if (color == 0) {
-        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        //     String wFilename = new String("diagMat.txt");
-        //     wYCbCr.writeTxt(wFilename, diagMat[color]);
-        // }
+        if (color == 2) {
+            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+            String wFilename = new String("diagMat.txt");
+            wYCbCr.writeTxt(wFilename, diagMat[color]);
+        }
     }
 
     private void updatePara (int color) {
@@ -156,13 +156,13 @@ public class Psvd {
         beta[color] *= 1.5;
 
         // test
-        // if (color == 0) {
-        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        //     String wFilename = new String("lambdaMat.txt");
-        //     wYCbCr.writeTxt(wFilename, lambdaMat[color]);
+        if (color == 2) {
+            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+            String wFilename = new String("lambdaMat.txt");
+            wYCbCr.writeTxt(wFilename, lambdaMat[color]);
 
-        //     System.out.println(beta[color]);
-        // }
+            System.out.println("beta = " + beta[color]);
+        }
     }
 
     private boolean judgeConverge (int color) {
