@@ -7,42 +7,70 @@ import Jama.*;
 public class Encoder {
     
     public static void main(String[] args) {
-        int width = 160;
-        int height = 128;
-        int totalFrames = 300;
+        int width = 8;
+        int height = 4;
+        int totalFrames = 10;
 
         // prepare to read YCbCr
-        String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv");
+        String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\small.yuv");
         ArrayList<Picture> picList = new ArrayList<>(); // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
         // read YCbCr
         rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
 
         // prepare to write YCbCr
-        WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
 
-        int gopSize = 60;
+        int gopSize = 2;
+        boolean codeCbCr = false;
         // first, stack gopSize pictures into one matrix -- stackedPicMatBase with (width*height) rows and gopSize cols
-        StackGops stackedGopBase = new StackGops(width * height, gopSize, true);
+        StackGops stackedGopBase = new StackGops(width * height, gopSize, codeCbCr);
         stackedGopBase.matrixLineByLine(picList, 0);
         // second, svd this stackedPicMatBase matrix
-        Svd svdResultBase = new Svd(stackedGopBase.getPermutedMatrix(), true);
+        Svd svdResultBase = new Svd(stackedGopBase.getMatrix(), codeCbCr);
         // third, reshape U and V matrix -- reshapedProductUVBase with (width*height*gopSize) rows and gopSize cols
-        MatrixPermutation reshapedProductUVBase = new ReshapeProductUV(width * height * gopSize, gopSize, true);
-        reshapedProductUVBase.permuteMatrix(svdResultBase.getMatU(), svdResultBase.getMatV());
+        MatrixCreationAndOperation reshapedProductUVBase = new ReshapeProductUV(width * height * gopSize, gopSize, codeCbCr);
+        reshapedProductUVBase.operateMatrix(svdResultBase.getMatU(), svdResultBase.getMatV());
         // fourth, inverse reshapedProductUVBase
-        MatrixPermutation inverseProductUVBase = new Inverse(gopSize, gopSize, true);
-        inverseProductUVBase.permuteMatrix(reshapedProductUVBase.getPermutedMatrix());
+        MatrixCreationAndOperation inverseProductUVBase = new Inverse(gopSize, gopSize, codeCbCr);
+        // inverseProductUVBase.operateMatrix(reshapedProductUVBase.getMatrix());
+        // Since inverseProductUVBase is an identity matrix, here we directly generate it.
+        inverseProductUVBase.operateMatrix();
+
+        // test
+        int testColor = 0;
+        // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        // String wFilename = new String("stackedGopBase.txt");
+        // wYCbCr.writeTxt(wFilename, stackedGopBase.getMatrix()[testColor]);
+        // wFilename = new String("V.txt");
+        // wYCbCr.writeTxt(wFilename, svdResultBase.getMatV()[testColor]);
+        // wFilename = new String("D.txt");
+        // wYCbCr.writeTxt(wFilename, svdResultBase.getMatS()[testColor]);
 
         // prepare to read following YCbCr
-        StackGops stackedGop = new StackGops(width * height, gopSize, true);
+        StackGops stackedGop = new StackGops(width * height, gopSize, codeCbCr);
         // prepare to stack gop matrix to one-col vector with (width*height*gopSize) rows
-        MatrixPermutation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, true);
-        for (int gopNo = 1; gopNo < 2; gopNo++) {
+        MatrixCreationAndOperation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
+        // prepare to psvd
+        Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
+        for (int gopNo = 1; gopNo < 3; gopNo++) {
             // read following YCbCr
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
             // stack gop matrix to one-col vector
-            stackedToOneColVector.permuteMatrix(stackedGop.getPermutedMatrix());
+            stackedToOneColVector.operateMatrix(stackedGop.getMatrix());
+
+            // test
+            // wFilename = new String("inverseProductUVBase.txt");
+            // wYCbCr.writeTxt(wFilename, inverseProductUVBase.getMatrix()[testColor]);
+            // wFilename = new String("stackedToOneColVector.txt");
+            // wYCbCr.writeTxt(wFilename, stackedToOneColVector.getMatrix()[testColor]);
+            // wFilename = new String("reshapedProductUVBase.txt");
+            // wYCbCr.writeTxt(wFilename, reshapedProductUVBase.getMatrix()[testColor]);
+
+            // psvd
+            System.out.print("gopNo: "+gopNo);
+            psvdOperation.psvdIteration();
+
         }
 
         

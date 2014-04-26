@@ -1,10 +1,9 @@
 package cn.edu.ustc.aaron.encoder;
 
-import cn.edu.ustc.aaron.common.Picture;
 import Jama.Matrix;
 import java.util.*;
 
-public class StackToOneCol extends MatrixPermutation {
+public class StackToOneCol extends MatrixCreationAndOperation {
 
     public StackToOneCol (int matHeight, int matWidth, boolean codeCbCr) {
         super(matHeight, matWidth, codeCbCr);
@@ -19,12 +18,12 @@ public class StackToOneCol extends MatrixPermutation {
         }
     }
 
-    public void permuteMatrix (Matrix[]... srcs) {
+    public void operateMatrix (Matrix[]... srcs) {
         Matrix[] src = srcs[0];
-        stackToOneCol(src[0].getArray(), super.permutedArrY, src[0].getColumnDimension(), src[0].getRowDimension());
+        stackToOneCol(src[0].getArray(), super.arrY, src[0].getColumnDimension(), src[0].getRowDimension());
         if (super.codeCbCr) {
-            stackToOneCol(src[1].getArray(), super.permutedArrCb, src[1].getColumnDimension(), src[1].getRowDimension());
-            stackToOneCol(src[2].getArray(), super.permutedArrCr, src[2].getColumnDimension(), src[2].getRowDimension());
+            stackToOneCol(src[1].getArray(), super.arrCb, src[1].getColumnDimension(), src[1].getRowDimension());
+            stackToOneCol(src[2].getArray(), super.arrCr, src[2].getColumnDimension(), src[2].getRowDimension());
         }
     }
 

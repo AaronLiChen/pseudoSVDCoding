@@ -4,9 +4,9 @@ import cn.edu.ustc.aaron.common.Picture;
 import Jama.Matrix;
 import java.util.*;
 
-public class StackGops extends MatrixPermutation {
+public class StackGops extends MatrixCreationAndOperation {
 
-    public StackGops (int matHeight,int matWidth,  boolean codeCbCr) {
+    public StackGops (int matHeight, int matWidth, boolean codeCbCr) {
         super(matHeight, matWidth, codeCbCr);
         super.allocMemory();
     }
@@ -35,10 +35,10 @@ public class StackGops extends MatrixPermutation {
         Picture srcPic = null;
         for (int frameNo = 0; frameNo < super.matWidth; frameNo++) {
             srcPic = picList.get(frameNo + startFrame);
-            stackLineByLine(srcPic.getY(), super.permutedArrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
+            stackLineByLine(srcPic.getY(), super.arrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
             if (super.codeCbCr) {
-                stackLineByLine(srcPic.getCb(), super.permutedArrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
-                stackLineByLine(srcPic.getCr(), super.permutedArrCr, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
+                stackLineByLine(srcPic.getCb(), super.arrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
+                stackLineByLine(srcPic.getCr(), super.arrCr, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
             }
          }
     }
@@ -46,15 +46,15 @@ public class StackGops extends MatrixPermutation {
     public void matrixColByCol (ArrayList<Picture> picList, int startFrame) {
         Picture srcPic = null;
         for (int frameNo = 0; frameNo < super.matWidth; frameNo++) {
-            stackColByCol(srcPic.getY(), super.permutedArrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
+            stackColByCol(srcPic.getY(), super.arrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
             if (super.codeCbCr) {
-                stackColByCol(srcPic.getCb(), super.permutedArrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
-                stackColByCol(srcPic.getCr(), super.permutedArrCr, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
+                stackColByCol(srcPic.getCb(), super.arrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
+                stackColByCol(srcPic.getCr(), super.arrCr, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
             }
          }
     }
 
-    public void permuteMatrix (Matrix[]... srcs) {
+    public void operateMatrix (Matrix[]... srcs) {
         System.out.println("Please use method 'matrixLineByLine' or 'matrixColByCol'!");
     }
 }

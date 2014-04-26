@@ -1,10 +1,9 @@
 package cn.edu.ustc.aaron.encoder;
 
-import cn.edu.ustc.aaron.common.Picture;
 import Jama.Matrix;
 import java.util.*;
 
-public class ReshapeProductUV extends MatrixPermutation {
+public class ReshapeProductUV extends MatrixCreationAndOperation {
 
     public ReshapeProductUV (int matHeight, int matWidth, boolean codeCbCr) {
         super(matHeight, matWidth, codeCbCr);
@@ -21,14 +20,14 @@ public class ReshapeProductUV extends MatrixPermutation {
         }
     }
 
-    public void permuteMatrix(Matrix[]... srcs) {
+    public void operateMatrix(Matrix[]... srcs) {
         Matrix[] srcU = srcs[0];
         Matrix[] srcV = srcs[1];
         for (int colNo = 0; colNo < super.matWidth; colNo++) {
-            multiplyAndStackUV(srcU[0].getArray(), srcV[0].getArray(), super.permutedArrY, colNo, srcV[0].getColumnDimension(), srcU[0].getRowDimension()); 
+            multiplyAndStackUV(srcU[0].getArray(), srcV[0].transpose().getArray(), super.arrY, colNo, srcV[0].getColumnDimension(), srcU[0].getRowDimension()); 
             if (codeCbCr) {
-                multiplyAndStackUV(srcU[1].getArray(), srcV[1].getArray(), super.permutedArrCb, colNo, srcV[1].getColumnDimension(), srcU[1].getRowDimension());    
-                multiplyAndStackUV(srcU[2].getArray(), srcV[2].getArray(), super.permutedArrCr, colNo, srcV[2].getColumnDimension(), srcU[2].getRowDimension());    
+                multiplyAndStackUV(srcU[1].getArray(), srcV[1].transpose().getArray(), super.arrCb, colNo, srcV[1].getColumnDimension(), srcU[1].getRowDimension());    
+                multiplyAndStackUV(srcU[2].getArray(), srcV[2].transpose().getArray(), super.arrCr, colNo, srcV[2].getColumnDimension(), srcU[2].getRowDimension());    
             }
         }
     }
