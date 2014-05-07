@@ -3,16 +3,18 @@ package cn.edu.ustc.aaron.encoder;
 import java.util.*;
 import cn.edu.ustc.aaron.common.*;
 import Jama.*;
+import nayuki.arithcode.*;
+import java.io.IOException;
 
 public class Encoder {
     
-    public static void main(String[] args) {
-        int width = 8;
-        int height = 4;
-        int totalFrames = 10;
+    public static void main(String[] args) throws IOException {
+        int width = 160;
+        int height = 128;
+        int totalFrames = 120;
 
         // prepare to read YCbCr
-        String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\small.yuv");
+        String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv");
         ArrayList<Picture> picList = new ArrayList<>(); // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
         // read YCbCr
@@ -23,7 +25,7 @@ public class Encoder {
         // String wFilename = new String("smallW.yuv");
         // wYCbCr.writePic(wFilename, width, height, totalFrames, picList);
 
-        int gopSize = 2;
+        int gopSize = 60;
         boolean codeCbCr = true;
         // first, stack gopSize pictures into one matrix -- stackedPicMatBase with (width*height) rows and gopSize cols
         StackGops stackedGopBase = new StackGops(width * height, gopSize, codeCbCr);
@@ -69,7 +71,7 @@ public class Encoder {
         MatrixCreationAndOperation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         // prepare to psvd
         Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
-        for (int gopNo = 1; gopNo < 3; gopNo++) {
+        for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
             // read following YCbCr
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
             // stack gop matrix to one-col vector
@@ -97,7 +99,39 @@ public class Encoder {
             // psvd
             System.out.println("gopNo: "+gopNo);
             psvdOperation.psvdIteration();
+        }
 
+        // diag.mat Binarization
+        Binarization diagBinarization = new Binarization(psvdOperation.getDiag(), codeCbCr);
+        diagBinarization.binarizeDiag();
+
+        // test
+        // int testColor = 0;
+        // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        // String wFilename = new String("Binarization.txt");
+        // wYCbCr.writeTxt(wFilename, diagBinarization.getbinArr(testColor), 1, diagBinarization.getbinArr(testColor).length);
+
+        // arithmetic encoding
+        ArithmeticCompress arithmeticEncoder = new ArithmeticCompress(diagBinarization.getbinArr(), "binDiag", codeCbCr);
+
+        // arithmetic decoding
+        ArithmeticDecompress arithmeticDecoder = new ArithmeticDecompress("binDiag", codeCbCr);
+
+        // diag.mat invBinarization
+        Binarization invBinarization = new Binarization(arithmeticDecoder.getbinArr(), codeCbCr);
+        invBinarization.invBinarizeDiag();
+
+        // test
+        Iterator diagListIt = psvdOperation.getDiag().get(0).iterator();
+        while(diagListIt.hasNext()) {
+            int elem = (int) diagListIt.next();
+            System.out.println(elem);
+        }
+
+        diagListIt = invBinarization.getDiag().get(0).iterator();
+        while(diagListIt.hasNext()) {
+            int elem = (int) diagListIt.next();
+            System.out.println(elem);
         }
 
         

@@ -24,6 +24,9 @@ public class Psvd {
 
     private Matrix[] zeroMat;
 
+    // prepare to store diagMat
+    private List<LinkedList<Integer>> diagList;
+
     public Psvd (Matrix[] stackedToOneColMat, Matrix[] reshapedProductUVBaseMat, Matrix[] inverseProductUVBaseMat, boolean codeCbCr, double beta, double tol) {
         this.stackedToOneColMat = stackedToOneColMat;
         this.reshapedProductUVBaseMat = reshapedProductUVBaseMat;
@@ -50,6 +53,12 @@ public class Psvd {
 
         zeroMat = new Matrix[1];
         zeroMat[0] = new Matrix(row, col, 0.0);
+
+        diagList  = new ArrayList<>();
+        for (int color = 0; color < 3; color++) {
+            diagList.add(new LinkedList<Integer>());
+        }
+
     }
 
 
@@ -107,6 +116,21 @@ public class Psvd {
    
     }
 
+    public Matrix[] getResidue () {
+        return residue.getMatrix();
+    }
+    public List<LinkedList<Integer>> getDiag () {
+        return diagList;
+    }
+
+    private void storeAndRoundDiag (int color) {
+        Matrix diagMat = diag.getMatrix(color);
+        for (int i = 0; i < diagMat.getRowDimension(); i++) {
+            diagList.get(color).offer((int)diagMat.get(i,0));       // int cast results in precision loss
+        }
+        
+    }
+
     private void solveR (int color) {
         Matrix[] tempDiffMat = tempDiff.getMatrix();
         Matrix[] lambdaMat = lambda.getMatrix();
@@ -118,15 +142,15 @@ public class Psvd {
         FindAndModify.findModifyMoreThan(residueMat[color], tempDiffMat[color], beta[color]);
 
         // test
-        if (color == 2) {
-            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-            String wFilename = new String("lambdaMat.txt");
-            wYCbCr.writeTxt(wFilename, lambdaMat[color]);
-            wFilename = new String("residueMat.txt");
-            wYCbCr.writeTxt(wFilename, residueMat[color]);
-            wFilename = new String("tempDiffMat.txt");
-            wYCbCr.writeTxt(wFilename, tempDiffMat[color]);
-        }
+        // if (color == 0) {
+        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        //     String wFilename = new String("lambdaMat.txt");
+        //     wYCbCr.writeTxt(wFilename, lambdaMat[color]);
+        //     wFilename = new String("residueMat.txt");
+        //     wYCbCr.writeTxt(wFilename, residueMat[color]);
+        //     wFilename = new String("tempDiffMat.txt");
+        //     wYCbCr.writeTxt(wFilename, tempDiffMat[color]);
+        // }
 
     }
 
@@ -140,11 +164,11 @@ public class Psvd {
         diagMat[color] = leftTerm.plus(rightTerm);
 
         // test
-        if (color == 2) {
-            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-            String wFilename = new String("diagMat.txt");
-            wYCbCr.writeTxt(wFilename, diagMat[color]);
-        }
+        // if (color == 0) {
+        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        //     String wFilename = new String("diagMat.txt");
+        //     wYCbCr.writeTxt(wFilename, diagMat[color]);
+        // }
     }
 
     private void updatePara (int color) {
@@ -156,13 +180,13 @@ public class Psvd {
         beta[color] *= 1.5;
 
         // test
-        if (color == 2) {
-            WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-            String wFilename = new String("lambdaMat.txt");
-            wYCbCr.writeTxt(wFilename, lambdaMat[color]);
+        // if (color == 0) {
+        //     WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        //     String wFilename = new String("lambdaMat.txt");
+        //     wYCbCr.writeTxt(wFilename, lambdaMat[color]);
 
-            System.out.println("beta = " + beta[color]);
-        }
+        //     System.out.println("beta = " + beta[color]);
+        // }
     }
 
     private boolean judgeConverge (int color) {
@@ -220,6 +244,7 @@ public class Psvd {
             //     convergedY = true;
             // }
         }
+        storeAndRoundDiag(0);
 
         if (codeCbCr) {
 
@@ -231,6 +256,7 @@ public class Psvd {
                 updatePara(1);
                 convergedCb = judgeConverge(1);
             }
+            storeAndRoundDiag(1);
 
             while (!convergedCr) {
                 iter[2]++;
@@ -240,6 +266,7 @@ public class Psvd {
                 updatePara(2);
                 convergedCr = judgeConverge(2);
             }
+            storeAndRoundDiag(2);
         } 
     }
 

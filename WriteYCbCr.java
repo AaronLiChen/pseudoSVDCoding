@@ -88,6 +88,15 @@ public class WriteYCbCr
 		}
 	}
 
+	private void endWritingTxt() {
+		try	{
+			fw.close();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	private void startWritingTxt(String filename) {
 		try {
 			fw = new FileWriter(filename);
@@ -117,6 +126,34 @@ public class WriteYCbCr
 			e.printStackTrace();
 			return false;
 		}
+		finally {
+			endWritingTxt();
+		}
+	}
+
+	public boolean writeTxt(String filename, byte[] src, int width, int height) {
+		startWritingTxt(filename);
+
+		try {
+			for (int y = 0; y < height; y++) 
+			{
+				for (int x = 0; x < width; x++) 
+				{
+					fw.write(String.valueOf(src[y * width + x] & 0xFF)+"\t");
+				}
+				fw.write("\r\n");
+			}
+
+			return true;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			endWritingTxt();
+		}
 	}
 
 	public boolean writeTxt(String filename, Matrix src) {
@@ -141,6 +178,9 @@ public class WriteYCbCr
 		{
 			e.printStackTrace();
 			return false;
+		}
+		finally {
+			endWritingTxt();
 		}
 	}
 }
