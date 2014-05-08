@@ -11,6 +11,7 @@ public class StackGops extends MatrixCreationAndOperation {
         super.allocMemory();
     }
 
+    // we tend to use stackLineByLine coz it is easy for the following Residue to be written as the yuv format.
     private void stackLineByLine (int[] src, double[][] dst, int frameNo, int width, int height) {
         for (int y = 0; y < height; y++) {
            for (int x = 0; x < width; x++) {

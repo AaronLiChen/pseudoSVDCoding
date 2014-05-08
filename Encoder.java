@@ -9,12 +9,14 @@ import java.io.IOException;
 public class Encoder {
     
     public static void main(String[] args) throws IOException {
+        // timing
+        long startMili=System.currentTimeMillis();
         int width = 160;
         int height = 128;
-        int totalFrames = 120;
+        int totalFrames = 100;
 
         // prepare to read YCbCr
-        String rFilename = new String("E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv");
+        String rFilename = new String("L:\\PsvdSequence\\Campus\\trees.yuv");
         ArrayList<Picture> picList = new ArrayList<>(); // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
         // read YCbCr
@@ -25,7 +27,7 @@ public class Encoder {
         // String wFilename = new String("smallW.yuv");
         // wYCbCr.writePic(wFilename, width, height, totalFrames, picList);
 
-        int gopSize = 60;
+        int gopSize = 5;
         boolean codeCbCr = true;
         // first, stack gopSize pictures into one matrix -- stackedPicMatBase with (width*height) rows and gopSize cols
         StackGops stackedGopBase = new StackGops(width * height, gopSize, codeCbCr);
@@ -71,6 +73,12 @@ public class Encoder {
         MatrixCreationAndOperation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         // prepare to psvd
         Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
+        // prepare to write Residue
+        WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        String wResidueFilename = new String("Residue.yuv");
+        int residueWidth = width * height;
+        wYCbCr.startWriting(wResidueFilename, residueWidth, residueWidth >> 2);
+
         for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
             // read following YCbCr
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
@@ -99,42 +107,49 @@ public class Encoder {
             // psvd
             System.out.println("gopNo: "+gopNo);
             psvdOperation.psvdIteration();
+
+            // write Residue
+            wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
+            // test (getResidue() can be used only once!)
+            // String wFilename = new String("ResidueRefined.txt");
+            // wYCbCr.writeTxt(wFilename, psvdOperation.getResidue()[0]);
         }
+        // end writing Residue
+        wYCbCr.endWriting();
 
         // diag.mat Binarization
-        Binarization diagBinarization = new Binarization(psvdOperation.getDiag(), codeCbCr);
-        diagBinarization.binarizeDiag();
+        // Binarization diagBinarization = new Binarization(psvdOperation.getDiag(), codeCbCr);
+        // diagBinarization.binarizeDiag();
+
+        // // test
+        // // int testColor = 0;
+        // // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+        // // String wFilename = new String("Binarization.txt");
+        // // wYCbCr.writeTxt(wFilename, diagBinarization.getbinArr(testColor), 1, diagBinarization.getbinArr(testColor).length);
+
+        // // arithmetic encoding
+        // ArithmeticCompress arithmeticEncoder = new ArithmeticCompress(diagBinarization.getbinArr(), "binDiag", codeCbCr);
+
+        // // arithmetic decoding
+        // ArithmeticDecompress arithmeticDecoder = new ArithmeticDecompress("binDiag", codeCbCr);
+
+        // // diag.mat invBinarization
+        // Binarization invBinarization = new Binarization(arithmeticDecoder.getbinArr(), codeCbCr);
+        // invBinarization.invBinarizeDiag();
 
         // test
-        // int testColor = 0;
-        // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        // String wFilename = new String("Binarization.txt");
-        // wYCbCr.writeTxt(wFilename, diagBinarization.getbinArr(testColor), 1, diagBinarization.getbinArr(testColor).length);
+        // Iterator diagListIt = psvdOperation.getDiag().get(0).iterator();
+        // while(diagListIt.hasNext()) {
+        //     int elem = (int) diagListIt.next();
+        //     System.out.println(elem);
+        // }
 
-        // arithmetic encoding
-        ArithmeticCompress arithmeticEncoder = new ArithmeticCompress(diagBinarization.getbinArr(), "binDiag", codeCbCr);
+        // diagListIt = invBinarization.getDiag().get(0).iterator();
+        // while(diagListIt.hasNext()) {
+        //     int elem = (int) diagListIt.next();
+        //     System.out.println(elem);
+        // }
 
-        // arithmetic decoding
-        ArithmeticDecompress arithmeticDecoder = new ArithmeticDecompress("binDiag", codeCbCr);
-
-        // diag.mat invBinarization
-        Binarization invBinarization = new Binarization(arithmeticDecoder.getbinArr(), codeCbCr);
-        invBinarization.invBinarizeDiag();
-
-        // test
-        Iterator diagListIt = psvdOperation.getDiag().get(0).iterator();
-        while(diagListIt.hasNext()) {
-            int elem = (int) diagListIt.next();
-            System.out.println(elem);
-        }
-
-        diagListIt = invBinarization.getDiag().get(0).iterator();
-        while(diagListIt.hasNext()) {
-            int elem = (int) diagListIt.next();
-            System.out.println(elem);
-        }
-
-        
+        System.out.println("Total time: " + ((System.currentTimeMillis() - startMili)/1000) + "s");
     }
-
 }

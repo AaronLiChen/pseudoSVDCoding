@@ -117,6 +117,7 @@ public class Psvd {
     }
 
     public Matrix[] getResidue () {
+        clipResidue();
         return residue.getMatrix();
     }
     public List<LinkedList<Integer>> getDiag () {
@@ -129,6 +130,31 @@ public class Psvd {
             diagList.get(color).offer((int)diagMat.get(i,0));       // int cast results in precision loss
         }
         
+    }
+
+    private void clipResidue (int color) {
+        Matrix residueMat = residue.getMatrix(color);
+        double [][] resMatArr = residueMat.getArray();
+        for (int row = 0; row < residueMat.getRowDimension(); row++) {
+            for (int col = 0; col < residueMat.getColumnDimension(); col++) {
+                resMatArr[row][col] *= 255.0;
+                if (resMatArr[row][col] > 128) {
+                    resMatArr[row][col] = 128.0; 
+                }
+                if (resMatArr[row][col] < -128.0) {
+                    resMatArr[row][col] = -127.0; 
+                }
+                resMatArr[row][col] += 127.0;
+            }
+        }
+    }
+
+    private void clipResidue () {
+        clipResidue(0);
+        if (codeCbCr) {
+            clipResidue(1);
+            clipResidue(2);
+        }
     }
 
     private void solveR (int color) {

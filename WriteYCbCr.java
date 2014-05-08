@@ -30,7 +30,6 @@ public class WriteYCbCr
 		int widthC = width >> 1;
 		int heightC = height >> 1;
         startWriting(filename, width, widthC);
-        // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
         
         Picture picTemp; 
         for (int framesNo = 0; framesNo < framesToBeWritten; framesNo++) {
@@ -43,7 +42,23 @@ public class WriteYCbCr
         endWriting();
 	}
 
-	private void startWriting(String filename, int width, int widthC)
+	public void writeMatColByCol(Matrix[] pictureMat, int gopSize, int frameSize, boolean codeCbCr) {
+		int frameSizeC = frameSize >> 2;
+
+		for (int frameNo = 0; frameNo < gopSize; frameNo++) {
+			writePlaneColByCol(pictureMat[0].getArray(), oneLineY, frameNo * frameSize, frameSize); 
+        	if (codeCbCr) {
+        		writePlaneColByCol(pictureMat[1].getArray(), oneLineCbCr, frameNo * frameSizeC, frameSizeC);  
+        		writePlaneColByCol(pictureMat[2].getArray(), oneLineCbCr, frameNo * frameSizeC, frameSizeC);  	
+        	}
+        	else {        	
+        		writePlaneConstant(128, oneLineCbCr, frameSizeC);  
+        		writePlaneConstant(128, oneLineCbCr, frameSizeC);
+        	}
+		}          
+	}
+
+	public void startWriting(String filename, int width, int widthC)
 	{
 		try
 		{
@@ -79,7 +94,39 @@ public class WriteYCbCr
 		}
 	}
 
-	private void endWriting() {
+	private boolean writePlaneColByCol(double[][] src, byte[] tmp, int startPos, int height) {
+		try	{
+			for (int y = 0; y < height; y++)
+			{
+				tmp[y] = (byte)(src[y+startPos][0] + 0.5);
+			}
+			dos.write(tmp);
+			return true;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean writePlaneConstant(int src, byte[] tmp, int height) {
+		try	{
+			for (int y = 0; y < height; y++)
+			{
+				tmp[y] = (byte)src;
+			}
+			dos.write(tmp);
+			return true;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public void endWriting() {
 		try	{
 			dos.close();
 		} catch (Exception e)
@@ -166,7 +213,7 @@ public class WriteYCbCr
 			{
 				for (int x = 0; x < width; x++) 
 				{
-					fw.write(String.format("%1.4g\t", srcMat[y][x]));
+					fw.write(String.format("%1.9g\t", srcMat[y][x]));
 				}
 				fw.write("\r\n");
 			}
