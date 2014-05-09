@@ -13,7 +13,7 @@ public class Encoder {
         long startMili=System.currentTimeMillis();
         int width = 160;
         int height = 128;
-        int totalFrames = 100;
+        int totalFrames = 1000;
 
         // prepare to read YCbCr
         String rFilename = new String("L:\\PsvdSequence\\Campus\\trees.yuv");
@@ -75,9 +75,19 @@ public class Encoder {
         Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
         // prepare to write Residue
         WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        String wResidueFilename = new String("Residue.yuv");
+        String wResidueFilename = new String("Dec.yuv");
         int residueWidth = width * height;
         wYCbCr.startWriting(wResidueFilename, residueWidth, residueWidth >> 2);
+        // prepare to read Residue
+        String rResidueFilename = new String("recResidue.yuv");
+        ArrayList<Picture> picResidueList = new ArrayList<>();
+        rYCbCr = ReadYCbCr.getInstance();
+        // input residue pre-operation
+        rYCbCr.readPic(rResidueFilename, width, height, totalFrames, picResidueList);
+        StackGops stackedResidueGop = new StackGops(width * height, gopSize, codeCbCr);
+        MatrixCreationAndOperation stackedResidueToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
+        Matrix mat127 = new Matrix(width * height * gopSize, 1, 127);
+        Matrix mat127CbCr = new Matrix((width * height * gopSize >> 2), 1, 127);
 
         for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
             // read following YCbCr
@@ -109,7 +119,17 @@ public class Encoder {
             psvdOperation.psvdIteration();
 
             // write Residue
-            wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
+            // wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
+
+            stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
+            stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
+            stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normlization);
+            if (codeCbCr) {
+                stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
+                stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
+            }
+            wYCbCr.writeMatColByCol(psvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix()), gopSize, width * height, codeCbCr);
+
             // test (getResidue() can be used only once!)
             // String wFilename = new String("ResidueRefined.txt");
             // wYCbCr.writeTxt(wFilename, psvdOperation.getResidue()[0]);
