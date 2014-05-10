@@ -1,7 +1,6 @@
 package cn.edu.ustc.aaron.common;
 
 import java.util.*;
-import cn.edu.ustc.aaron.encoder.*;
 import Jama.Matrix;
 
 public class PsnrCalculation {
@@ -18,15 +17,33 @@ public class PsnrCalculation {
     private ArrayList<Picture> picOrgList;
     private ArrayList<Picture> picDecList;
 
-    public PsnrCalculation (boolean codeCbCr, double totalBytes, int frameRate) {
+    public PsnrCalculation (boolean codeCbCr, double totalBytes, int frameRate, int width, int height, int totalFrames, int gopSize) {
         this.codeCbCr = codeCbCr;
         this.totalBytes = totalBytes;
         this.frameRate = frameRate;
+
+        this.width = width;
+        this.height = height;
+        this.widthC = width >> 1;
+        this.heightC = height >> 1;
+        this.totalFrames = totalFrames;
+        this.gopSize = gopSize;
     }
 
     public static void main(String[] args) {
-        PsnrCalculation psnrCalc = new PsnrCalculation(true, 20, 438363);
-        psnrCalc.readPic();
+        boolean codeCbCr = Boolean.parseBoolean(args[0]);
+        double totalBytes = Double.parseDouble(args[1]);
+        int frameRate = Integer.parseInt(args[2]);
+        int width = Integer.parseInt(args[3]);
+        int height = Integer.parseInt(args[4]);
+        int totalFrames = Integer.parseInt(args[5]);
+        int gopSize = Integer.parseInt(args[6]);
+
+        String rFilename = args[7];
+        String rDecFilename = args[8];
+
+        PsnrCalculation psnrCalc = new PsnrCalculation(codeCbCr, totalBytes, frameRate, width, height, totalFrames, gopSize);
+        psnrCalc.readPic(rFilename, rDecFilename);
         psnrCalc.calcPsnr();
         psnrCalc.calcBitRate();
     }
@@ -37,22 +54,13 @@ public class PsnrCalculation {
         System.out.println("BitRate: " + bitrate);
     }
 
-    private void readPic () {
-        width = 160;
-        height = 128;
-        widthC = width >> 1;
-        heightC = height >> 1;
-        totalFrames = 1000;
-        gopSize = 5;
-        codeCbCr = true;
+    private void readPic (String rFilename, String rDecFilename) {
 
-        String rFilename = new String("L:\\PsvdSequence\\Campus\\trees.yuv");
         picOrgList = new ArrayList<>(); 
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
         // read Org
         rYCbCr.readPic(rFilename, width, height, totalFrames, picOrgList);
 
-        String rDecFilename = new String("Dec.yuv");
         picDecList = new ArrayList<>();
         rYCbCr = ReadYCbCr.getInstance();
         // read Dec

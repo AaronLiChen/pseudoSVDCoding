@@ -1,0 +1,17 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+
+<Encoder>
+<Sequence>
+    <InputOrgPic>Trees.yuv</InputOrgPic>
+    <Width>160</Width>
+    <Height>128</Height>
+    <TotalFrames>300</TotalFrames>
+    <OutputResPic>Residue.yuv</OutputResPic>
+</Sequence>
+
+<Parameter>
+    <GopSize>5</GopSize>
+    <CodeCbCr>true</CodeCbCr>
+</Parameter>
+</Encoder>
+

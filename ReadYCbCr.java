@@ -1,11 +1,10 @@
-package cn.edu.ustc.aaron.encoder;
+package cn.edu.ustc.aaron.common;
 
 import java.io.*;
 import javax.swing.*;
 import java.awt.image.*;
 import javax.imageio.*;
 import java.util.*;
-import cn.edu.ustc.aaron.common.Picture;
 
 public class ReadYCbCr
 {

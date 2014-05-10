@@ -1,6 +1,5 @@
-package cn.edu.ustc.aaron.encoder;
+package cn.edu.ustc.aaron.common;
 
-import cn.edu.ustc.aaron.common.*;
 import Jama.*;
 
 public class Svd {

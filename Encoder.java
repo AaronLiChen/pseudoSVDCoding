@@ -11,30 +11,33 @@ public class Encoder {
     public static void main(String[] args) throws IOException {
         // timing
         long startMili=System.currentTimeMillis();
-        int width = 160;
-        int height = 128;
-        int totalFrames = 1000;
+        // read paras
+        DomXmlDocument paraXml = new DomXmlDocument();
+        HashMap<String, String> paraMap = paraXml.parseXml(args[0]);
+        int width = Integer.parseInt(paraMap.get("Width"));
+        int height = Integer.parseInt(paraMap.get("Height"));
+        int totalFrames = Integer.parseInt(paraMap.get("TotalFrames"));
 
-        // prepare to read YCbCr
-        String rFilename = new String("L:\\PsvdSequence\\Campus\\trees.yuv");
-        ArrayList<Picture> picList = new ArrayList<>(); // Z:\\sequences_3DV_CfP\\Balloons\\Balloons3.yuv E:\\JavaWorkSpace\\PsvdProject\\Sequences\\Campus\\trees.yuv
+        // prepare to read org pics
+        String rFilename = paraMap.get("InputOrgPic");
+        ArrayList<Picture> picList = new ArrayList<>();
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
-        // read YCbCr
+        // read org pics
         rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
 
-        // prepare to write YCbCr
-        // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        // String wFilename = new String("smallW.yuv");
-        // wYCbCr.writePic(wFilename, width, height, totalFrames, picList);
+        int gopSize = Integer.parseInt(paraMap.get("GopSize"));
+        boolean codeCbCr = Boolean.parseBoolean(paraMap.get("CodeCbCr"));
 
-        int gopSize = 5;
-        boolean codeCbCr = true;
-        // first, stack gopSize pictures into one matrix -- stackedPicMatBase with (width*height) rows and gopSize cols
+        /* start the encoding process */
+
+        // 1st, stack gopSize pictures into 'stackedPicMatBase' matrix with (width*height) rows and gopSize cols
         StackGops stackedGopBase = new StackGops(width * height, gopSize, codeCbCr);
-        stackedGopBase.matrixLineByLine(picList, 0);
-        // second, svd this stackedPicMatBase matrix
+        stackedGopBase.matrixLineByLine(picList, 0);  // use the line by line method so that writing yuv at the end will be easy
+
+        // 2nd, svd this stackedPicMatBase matrix
         Svd svdResultBase = new Svd(stackedGopBase.getMatrix(), codeCbCr);
-        // third, reshape U and V matrix -- reshapedProductUVBase with (width*height*gopSize) rows and gopSize cols
+
+        // 3rd, reshape U and V matrix into 'reshapedProductUVBase' with (width*height*gopSize) rows and gopSize cols
         MatrixCreationAndOperation reshapedProductUVBase = new ReshapeProductUV(width * height * gopSize, gopSize, codeCbCr);
         reshapedProductUVBase.operateMatrix(svdResultBase.getMatU(), svdResultBase.getMatV());
         // { NOMORLIAZATION
@@ -45,7 +48,8 @@ public class Encoder {
             reshapedProductUVBase.getMatrix(2).timesEquals(1.0/normlization/normlization);
         }
         // }
-        // fourth, inverse reshapedProductUVBase
+
+        // 4th, inverse reshapedProductUVBase for Psvd's use
         MatrixCreationAndOperation inverseProductUVBase = new Inverse(gopSize, gopSize, codeCbCr);
         // inverseProductUVBase.operateMatrix(reshapedProductUVBase.getMatrix());
         // Since inverseProductUVBase is an identity matrix, here we directly generate it.
@@ -67,27 +71,19 @@ public class Encoder {
         // wFilename = new String("D.txt");
         // wYCbCr.writeTxt(wFilename, svdResultBase.getMatS()[testColor]);
 
+        // 5th, preparation for pseudo svd
         // prepare to read the following gops' YCbCr
         StackGops stackedGop = new StackGops(width * height, gopSize, codeCbCr);
         // prepare to stack gop matrix to one-col vector with (width*height*gopSize) rows
         MatrixCreationAndOperation stackedToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         // prepare to psvd
         Psvd psvdOperation = new Psvd(stackedToOneColVector.getMatrix(), reshapedProductUVBase.getMatrix(), inverseProductUVBase.getMatrix(), codeCbCr, 1.0, 1.0e-7);
+
         // prepare to write Residue
         WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        String wResidueFilename = new String("Dec.yuv");
+        String wResidueFilename = paraMap.get("OutputResPic");
         int residueWidth = width * height;
         wYCbCr.startWriting(wResidueFilename, residueWidth, residueWidth >> 2);
-        // prepare to read Residue
-        String rResidueFilename = new String("recResidue.yuv");
-        ArrayList<Picture> picResidueList = new ArrayList<>();
-        rYCbCr = ReadYCbCr.getInstance();
-        // input residue pre-operation
-        rYCbCr.readPic(rResidueFilename, width, height, totalFrames, picResidueList);
-        StackGops stackedResidueGop = new StackGops(width * height, gopSize, codeCbCr);
-        MatrixCreationAndOperation stackedResidueToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
-        Matrix mat127 = new Matrix(width * height * gopSize, 1, 127);
-        Matrix mat127CbCr = new Matrix((width * height * gopSize >> 2), 1, 127);
 
         for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
             // read following YCbCr
@@ -119,16 +115,16 @@ public class Encoder {
             psvdOperation.psvdIteration();
 
             // write Residue
-            // wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
+            wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
 
-            stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
-            stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
-            stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normlization);
-            if (codeCbCr) {
-                stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
-                stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
-            }
-            wYCbCr.writeMatColByCol(psvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix()), gopSize, width * height, codeCbCr);
+            // stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
+            // stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
+            // stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normlization);
+            // if (codeCbCr) {
+            //     stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
+            //     stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
+            // }
+            // wYCbCr.writeMatColByCol(psvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix()), gopSize, width * height, codeCbCr);
 
             // test (getResidue() can be used only once!)
             // String wFilename = new String("ResidueRefined.txt");

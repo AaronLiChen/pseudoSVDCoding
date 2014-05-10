@@ -1,10 +1,9 @@
-package cn.edu.ustc.aaron.encoder;
+package cn.edu.ustc.aaron.common;
 
 import java.io.*;
 import javax.swing.*;
 import java.awt.image.*;
 import java.util.*;
-import cn.edu.ustc.aaron.common.Picture;
 import Jama.Matrix;
 
 public class WriteYCbCr

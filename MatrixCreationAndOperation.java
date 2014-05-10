@@ -1,4 +1,4 @@
-package cn.edu.ustc.aaron.encoder;
+package cn.edu.ustc.aaron.common;
 
 import Jama.Matrix;
 import java.util.*;

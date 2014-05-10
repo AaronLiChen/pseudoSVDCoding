@@ -1,0 +1,18 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+
+<Encoder>
+<Sequence>
+    <InputOrgPic>Trees.yuv</InputOrgPic>
+    <InputResPic>out\psvd\TreesResidue.yuv</InputResPic>
+    <Width>160</Width>
+    <Height>128</Height>
+    <TotalFrames>300</TotalFrames>
+    <OutputDecPic>out\psvd\TreesDec.yuv</OutputDecPic>
+</Sequence>
+
+<Parameter>
+    <GopSize>5</GopSize>
+    <CodeCbCr>true</CodeCbCr>
+</Parameter>
+</Encoder>
+
