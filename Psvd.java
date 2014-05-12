@@ -129,7 +129,6 @@ public class Psvd {
         for (int i = 0; i < diagMat.getRowDimension(); i++) {
             diagList.get(color).offer((int)diagMat.get(i,0));       // int cast results in precision loss
         }
-        
     }
 
     private void clipResidue (int color) {
@@ -296,6 +295,7 @@ public class Psvd {
         } 
     }
 
+    // test
     public Matrix[] invPsvd () {
         Matrix[] residueMat = residue.getMatrix();
         Matrix[] diagMat = diag.getMatrix();
@@ -303,21 +303,10 @@ public class Psvd {
 
         decStackedToOneColMat[0] = reshapedProductUVBaseMat[0].times(diagMat[0]).plus(residueMat[0]).timesEquals(255.0);
         if (codeCbCr) {
-            decStackedToOneColMat[1] = reshapedProductUVBaseMat[1].times(diagMat[1]).plus(residueMat[1]).timesEquals(255.0);;
-            decStackedToOneColMat[2] = reshapedProductUVBaseMat[2].times(diagMat[2]).plus(residueMat[2]).timesEquals(255.0);;
+            decStackedToOneColMat[1] = reshapedProductUVBaseMat[1].times(diagMat[1]).plus(residueMat[1]).timesEquals(255.0);
+            decStackedToOneColMat[2] = reshapedProductUVBaseMat[2].times(diagMat[2]).plus(residueMat[2]).timesEquals(255.0);
         }
         return decStackedToOneColMat;
     }
 
-    public Matrix[] invPsvd (Matrix[] residueMat) {
-        Matrix[] diagMat = diag.getMatrix();
-        Matrix[] decStackedToOneColMat = new Matrix[3];
-
-        decStackedToOneColMat[0] = reshapedProductUVBaseMat[0].times(diagMat[0]).plus(residueMat[0]).timesEquals(255.0);;
-        if (codeCbCr) {
-            decStackedToOneColMat[1] = reshapedProductUVBaseMat[1].times(diagMat[1]).plus(residueMat[1]).timesEquals(255.0);;
-            decStackedToOneColMat[2] = reshapedProductUVBaseMat[2].times(diagMat[2]).plus(residueMat[2]).timesEquals(255.0);;
-        }
-        return decStackedToOneColMat;
-    }
 }

@@ -31,19 +31,19 @@ public class PsnrCalculation {
     }
 
     public static void main(String[] args) {
-        boolean codeCbCr = Boolean.parseBoolean(args[0]);
-        double totalBytes = Double.parseDouble(args[1]);
-        int frameRate = Integer.parseInt(args[2]);
-        int width = Integer.parseInt(args[3]);
-        int height = Integer.parseInt(args[4]);
-        int totalFrames = Integer.parseInt(args[5]);
-        int gopSize = Integer.parseInt(args[6]);
-
-        String rFilename = args[7];
-        String rDecFilename = args[8];
+        // read paras
+        DomXmlDocument paraXml = new DomXmlDocument();
+        HashMap<String, String> paraMap = paraXml.parseXml(args[0]);
+        int width = Integer.parseInt(paraMap.get("Width"));
+        int height = Integer.parseInt(paraMap.get("Height"));
+        int totalFrames = Integer.parseInt(paraMap.get("TotalFrames"));
+        int gopSize = Integer.parseInt(paraMap.get("GopSize"));
+        boolean codeCbCr = Boolean.parseBoolean(paraMap.get("CodeCbCr"));
+        double totalBytes = Double.parseDouble(paraMap.get("TotalBytes"));
+        int frameRate = Integer.parseInt(paraMap.get("FrameRate"));
 
         PsnrCalculation psnrCalc = new PsnrCalculation(codeCbCr, totalBytes, frameRate, width, height, totalFrames, gopSize);
-        psnrCalc.readPic(rFilename, rDecFilename);
+        psnrCalc.readPic(paraMap.get("OrgVideo"), paraMap.get("DecVideo"));
         psnrCalc.calcPsnr();
         psnrCalc.calcBitRate();
     }

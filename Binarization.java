@@ -51,6 +51,7 @@ public class Binarization {
             totalLength[color] += Math.abs(elem);  // unary binarization
         }
         totalLength[color] += 2 * diagList.get(color).size();  // plus one sign bit and one segmentation bit
+        System.out.println("Binarization totalLength[" + color + "]: " + totalLength[color]);
     }
 
     private void binarizeDiag(int color) {
@@ -104,12 +105,13 @@ public class Binarization {
         }
     }
 
-    public void invBinarizeDiag() {
+    public List<LinkedList<Integer>> invBinarizeDiag() {
         invBinarizeDiag(0);
         if (codeCbCr) {
             invBinarizeDiag(1);
             invBinarizeDiag(2);
         }
+        return diagList;
     }
 
     public byte[][] getbinArr () {

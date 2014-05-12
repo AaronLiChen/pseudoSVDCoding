@@ -77,7 +77,7 @@ public class ArithmeticDecompress {
 		// Writer out = new BufferedWriter(new FileWriter(outputFile));
 		try {
 			FrequencyTable freq = readFrequencies(in);
-			// System.out.println(freq.toString());
+			System.out.println(freq.toString());
 			decompress(freq, in, b);
 		} finally {
 			// out.close();
@@ -131,12 +131,15 @@ public class ArithmeticDecompress {
 	}
 	static void decompress(FrequencyTable freq, BitInputStream in, LinkedList<Byte> b) throws IOException {
 		ArithmeticDecoder dec = new ArithmeticDecoder(in);
+		// int count = 0;
 		while (true) {
 			int symbol = dec.read(freq);
 			if (symbol == 2)  // EOF symbol
 				break;
+			// System.out.print("\r"+(++count));
 			b.offer((byte)symbol);
 		}
+		// System.out.print("\n");
 	}
 	
 	

@@ -36,7 +36,7 @@ public class ArithmeticCompress {
 		BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
 		try {
 			writeFrequencies(out, freq);
-			// System.out.println(freq.toString());
+			System.out.println(freq.toString());
 			compress(freq, in, out); // the AC is written after freq in outputBitstream
 		} finally {
 			out.close();
@@ -109,12 +109,16 @@ public class ArithmeticCompress {
 	
 	static void compress(FrequencyTable freq, InputStream in, BitOutputStream out) throws IOException {
 		ArithmeticEncoder enc = new ArithmeticEncoder(out);
+		// int count = 0;
 		while (true) {
 			int b = in.read();
 			if (b == -1)
 				break;
+			// System.out.print("\r"+(++count));
 			enc.write(freq, b);
+
 		}
+		// System.out.print("\n");
 		enc.write(freq, 2);  // EOF
 		enc.finish();
 	}

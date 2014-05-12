@@ -10,13 +10,17 @@ public class Encoder {
     
     public static void main(String[] args) throws IOException {
         // timing
-        long startMili=System.currentTimeMillis();
+        long startMili = System.currentTimeMillis();
         // read paras
         DomXmlDocument paraXml = new DomXmlDocument();
         HashMap<String, String> paraMap = paraXml.parseXml(args[0]);
         int width = Integer.parseInt(paraMap.get("Width"));
         int height = Integer.parseInt(paraMap.get("Height"));
         int totalFrames = Integer.parseInt(paraMap.get("TotalFrames"));
+        int gopSize = Integer.parseInt(paraMap.get("GopSize"));
+        boolean codeCbCr = Boolean.parseBoolean(paraMap.get("CodeCbCr"));
+        boolean acEncoding = Boolean.parseBoolean(paraMap.get("ArithmeticEncoding"));
+        boolean diagOutput = Boolean.parseBoolean(paraMap.get("DiagData"));
 
         // prepare to read org pics
         String rFilename = paraMap.get("InputOrgPic");
@@ -25,8 +29,6 @@ public class Encoder {
         // read org pics
         rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
 
-        int gopSize = Integer.parseInt(paraMap.get("GopSize"));
-        boolean codeCbCr = Boolean.parseBoolean(paraMap.get("CodeCbCr"));
 
         /* start the encoding process */
 
@@ -41,11 +43,11 @@ public class Encoder {
         MatrixCreationAndOperation reshapedProductUVBase = new ReshapeProductUV(width * height * gopSize, gopSize, codeCbCr);
         reshapedProductUVBase.operateMatrix(svdResultBase.getMatU(), svdResultBase.getMatV());
         // { NOMORLIAZATION
-        double normlization = 255.0; // use this coz U and V are both divided by 255 for Psvd
-        reshapedProductUVBase.getMatrix(0).timesEquals(1.0/normlization/normlization);
+        double normalization = 255.0; // use this coz U and V are both divided by 255 for Psvd
+        reshapedProductUVBase.getMatrix(0).timesEquals(1.0/normalization/normalization);
         if (codeCbCr) {
-            reshapedProductUVBase.getMatrix(1).timesEquals(1.0/normlization/normlization);
-            reshapedProductUVBase.getMatrix(2).timesEquals(1.0/normlization/normlization);
+            reshapedProductUVBase.getMatrix(1).timesEquals(1.0/normalization/normalization);
+            reshapedProductUVBase.getMatrix(2).timesEquals(1.0/normalization/normalization);
         }
         // }
 
@@ -54,8 +56,8 @@ public class Encoder {
         // inverseProductUVBase.operateMatrix(reshapedProductUVBase.getMatrix());
         // Since inverseProductUVBase is an identity matrix, here we directly generate it.
         // { NOMORLIAZATION
-        Matrix[] coeffMat = new Matrix[1]; // use this coz U and V are both divided by 255 for Psvd
-        coeffMat[0] = new Matrix(1, 1, normlization*normlization*normlization*normlization);
+        Matrix[] coeffMat = new Matrix[1]; // use this because U and V are both divided by 255 for Psvd
+        coeffMat[0] = new Matrix(1, 1, normalization*normalization*normalization*normalization);
         // }
         inverseProductUVBase.operateMatrix(coeffMat);
 
@@ -91,10 +93,10 @@ public class Encoder {
             // stack gop matrix to one-col vector
             stackedToOneColVector.operateMatrix(stackedGop.getMatrix());
             // { NOMORLIAZATION
-            stackedToOneColVector.getMatrix(0).timesEquals(1.0/normlization);
+            stackedToOneColVector.getMatrix(0).timesEquals(1.0/normalization);
             if (codeCbCr) {
-                stackedToOneColVector.getMatrix(1).timesEquals(1.0/normlization);
-                stackedToOneColVector.getMatrix(2).timesEquals(1.0/normlization);
+                stackedToOneColVector.getMatrix(1).timesEquals(1.0/normalization);
+                stackedToOneColVector.getMatrix(2).timesEquals(1.0/normalization);
             }
             // }
 
@@ -117,41 +119,12 @@ public class Encoder {
             // write Residue
             wYCbCr.writeMatColByCol(psvdOperation.getResidue(), gopSize, width * height, codeCbCr);
 
-            // stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
-            // stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
-            // stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normlization);
-            // if (codeCbCr) {
-            //     stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
-            //     stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normlization);
-            // }
-            // wYCbCr.writeMatColByCol(psvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix()), gopSize, width * height, codeCbCr);
-
             // test (getResidue() can be used only once!)
             // String wFilename = new String("ResidueRefined.txt");
             // wYCbCr.writeTxt(wFilename, psvdOperation.getResidue()[0]);
         }
         // end writing Residue
         wYCbCr.endWriting();
-
-        // diag.mat Binarization
-        // Binarization diagBinarization = new Binarization(psvdOperation.getDiag(), codeCbCr);
-        // diagBinarization.binarizeDiag();
-
-        // // test
-        // // int testColor = 0;
-        // // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
-        // // String wFilename = new String("Binarization.txt");
-        // // wYCbCr.writeTxt(wFilename, diagBinarization.getbinArr(testColor), 1, diagBinarization.getbinArr(testColor).length);
-
-        // // arithmetic encoding
-        // ArithmeticCompress arithmeticEncoder = new ArithmeticCompress(diagBinarization.getbinArr(), "binDiag", codeCbCr);
-
-        // // arithmetic decoding
-        // ArithmeticDecompress arithmeticDecoder = new ArithmeticDecompress("binDiag", codeCbCr);
-
-        // // diag.mat invBinarization
-        // Binarization invBinarization = new Binarization(arithmeticDecoder.getbinArr(), codeCbCr);
-        // invBinarization.invBinarizeDiag();
 
         // test
         // Iterator diagListIt = psvdOperation.getDiag().get(0).iterator();
@@ -160,12 +133,41 @@ public class Encoder {
         //     System.out.println(elem);
         // }
 
-        // diagListIt = invBinarization.getDiag().get(0).iterator();
-        // while(diagListIt.hasNext()) {
-        //     int elem = (int) diagListIt.next();
-        //     System.out.println(elem);
-        // }
+        // 6th diag.mat Binarization
+        if (acEncoding) {
+            long psvdTime = System.currentTimeMillis();
+            System.out.println("Psvd time: " + ((psvdTime - startMili)/1000) + "s");
+            Binarization diagBinarization = new Binarization(psvdOperation.getDiag(), codeCbCr);
+            diagBinarization.binarizeDiag();
 
+            // // test
+            // // int testColor = 0;
+            // // WriteYCbCr wYCbCr = WriteYCbCr.getInstance();
+            // // String wFilename = new String("Binarization.txt");
+            // // wYCbCr.writeTxt(wFilename, diagBinarization.getbinArr(testColor), 1, diagBinarization.getbinArr(testColor).length);
+
+            // 7th arithmetic encoding
+            ArithmeticCompress arithmeticEncoder = new ArithmeticCompress(diagBinarization.getbinArr(), paraMap.get("DiagBinFile"), codeCbCr);
+
+            // // arithmetic decoding
+            // ArithmeticDecompress arithmeticDecoder = new ArithmeticDecompress("binDiag", codeCbCr);
+
+            // // diag.mat invBinarization
+            // Binarization invBinarization = new Binarization(arithmeticDecoder.getbinArr(), codeCbCr);
+            // invBinarization.invBinarizeDiag();
+
+            // test
+            // diagListIt = invBinarization.getDiag().get(0).iterator();
+            // while(diagListIt.hasNext()) {
+            //     int elem = (int) diagListIt.next();
+            //     System.out.println(elem);
+            // }
+            System.out.println("AC time: " + ((System.currentTimeMillis() - psvdTime)/1000) + "s");
+        }
+        if (diagOutput) {
+            wYCbCr.writeData(paraMap.get("DiagDataFile"), psvdOperation.getDiag(), codeCbCr);
+        }
+        
         System.out.println("Total time: " + ((System.currentTimeMillis() - startMili)/1000) + "s");
     }
 }

@@ -229,4 +229,40 @@ public class WriteYCbCr
 			endWritingTxt();
 		}
 	}
+
+	private boolean writeData(LinkedList<Integer> src, int color) {
+		Iterator srcIt = src.iterator();
+		try {
+			int elem;
+			while (srcIt.hasNext()) {
+				elem = (int)srcIt.next();
+				dos.writeInt(elem);
+				// System.out.println(elem);
+			}
+			return true;
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean writeData(String filename, List<LinkedList<Integer>> srcList, boolean codeCbCr) {
+		try {
+			startWriting(filename, 0, 0);
+			writeData(srcList.get(0), 0);
+			if (codeCbCr) {
+				writeData(srcList.get(1), 1);
+				writeData(srcList.get(2), 2);
+			}
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			endWriting();
+			return true;
+		}
+	}
 }

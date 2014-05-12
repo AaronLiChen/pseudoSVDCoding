@@ -2,20 +2,18 @@
 
 <Encoder>
 <Sequence>
-    <InputOrgPic>Trees.yuv</InputOrgPic>
+    <OrgVideo>Trees.yuv</OrgVideo>
+    <DecVideo>out\psvd\TreesDec.yuv</DecVideo>
     <Width>160</Width>
     <Height>128</Height>
     <TotalFrames>300</TotalFrames>
-    <OutputResPic>Residue.yuv</OutputResPic>
+    <FrameRate>20</FrameRate>
 </Sequence>
 
 <Parameter>
     <GopSize>5</GopSize>
     <CodeCbCr>true</CodeCbCr>
-    <ArithmeticEncoding>true</ArithmeticEncoding>
-    <DiagBinFile>binDiag</DiagBinFile>
-    <DiagData>true</DiagData>
-    <DiagDataFile>Diag.data</DiagDataFile>
+    <TotalBytes>114774</TotalBytes>
 </Parameter>
 </Encoder>
 

@@ -13,6 +13,9 @@
 <Parameter>
     <GopSize>5</GopSize>
     <CodeCbCr>true</CodeCbCr>
+    <ArithmeticDecoding>false</ArithmeticDecoding>
+    <DiagBinFile>binDiag</DiagBinFile>
+    <DiagDataFile>Diag.data</DiagDataFile>
 </Parameter>
 </Encoder>
 

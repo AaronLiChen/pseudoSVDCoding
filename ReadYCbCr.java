@@ -91,5 +91,40 @@ public class ReadYCbCr
 	private static int unsignedByteToInt(byte b) {
 		return (int) b & 0xFF;
 	}
+
+	private boolean readData(LinkedList<Integer> src, int total, int color) {
+		try {
+			int count = 0;
+			while (count < total) {
+				src.offer(dis.readInt());
+				// System.out.println(src.peekLast());
+				count++;
+			}
+			return true;
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean readData(String filename, List<LinkedList<Integer>> srcList, int total, boolean codeCbCr) {
+		try {
+			startReading(filename, 0, 0);
+			readData(srcList.get(0), total, 0);
+			if (codeCbCr) {
+				readData(srcList.get(1), total, 1);
+				readData(srcList.get(2), total, 2);
+			}
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			endReading();
+			return true;
+		}
+	}
     
 }
