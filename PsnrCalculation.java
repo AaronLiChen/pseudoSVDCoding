@@ -32,7 +32,7 @@ public class PsnrCalculation {
 
     public static void main(String[] args) {
         // read paras
-        DomXmlDocument paraXml = new DomXmlDocument();
+        XmlDocument paraXml = new DomXmlDocument();
         HashMap<String, String> paraMap = paraXml.parseXml(args[0]);
         int width = Integer.parseInt(paraMap.get("Width"));
         int height = Integer.parseInt(paraMap.get("Height"));
@@ -43,15 +43,34 @@ public class PsnrCalculation {
         int frameRate = Integer.parseInt(paraMap.get("FrameRate"));
 
         PsnrCalculation psnrCalc = new PsnrCalculation(codeCbCr, totalBytes, frameRate, width, height, totalFrames, gopSize);
-        psnrCalc.readPic(paraMap.get("OrgVideo"), paraMap.get("DecVideo"));
+        psnrCalc.readPic(paraMap.get("OrgYuv"), paraMap.get("DecYuv"));
         psnrCalc.calcPsnr();
         psnrCalc.calcBitRate();
+    }
+
+    public static void calcPsnr (String paraFile) {
+        // read paras
+        DomXmlDocument paraXml = new DomXmlDocument();
+        HashMap<String, String> paraMap = paraXml.parseXml(paraFile);
+        int width = Integer.parseInt(paraMap.get("Width"));
+        int height = Integer.parseInt(paraMap.get("Height"));
+        int totalFrames = Integer.parseInt(paraMap.get("TotalFrames"));
+        int gopSize = Integer.parseInt(paraMap.get("GopSize"));
+        boolean codeCbCr = Boolean.parseBoolean(paraMap.get("CodeCbCr"));
+        double totalBytes = Double.parseDouble(paraMap.get("TotalBytes"));
+        int frameRate = Integer.parseInt(paraMap.get("FrameRate"));
+
+        PsnrCalculation psnrCalc = new PsnrCalculation(codeCbCr, totalBytes, frameRate, width, height, totalFrames, gopSize);
+        psnrCalc.readPic(paraMap.get("OrgYuv"), paraMap.get("DecYuv"));
+        System.out.println("BitRate    Y-PSNR    Cb-PSNR    Cr-PSNR");
+        psnrCalc.calcBitRate();
+        psnrCalc.calcPsnr();
     }
 
     private void calcBitRate () {
         double time = (double)(totalFrames - gopSize) / (double)frameRate;
         double bitrate = 0.008 * totalBytes / time;
-        System.out.println("BitRate: " + bitrate);
+        System.out.printf("%.4f", bitrate);
     }
 
     private void readPic (String rFilename, String rDecFilename) {
@@ -96,10 +115,10 @@ public class PsnrCalculation {
             }
         }
 
-        System.out.println("Y-PSNR: "+ yPsnr/(totalFrames - gopSize));
+        System.out.printf("    %.4f", yPsnr/(totalFrames - gopSize));
         if (codeCbCr) {
-            System.out.println("Cb-PSNR: "+ cbPsnr/(totalFrames - gopSize));
-            System.out.println("Cr-PSNR: "+ crPsnr/(totalFrames - gopSize));
+            System.out.printf("    %.4f", cbPsnr/(totalFrames - gopSize));
+            System.out.printf("    %.4f", crPsnr/(totalFrames - gopSize));
         }
     }
 
