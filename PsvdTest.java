@@ -34,7 +34,7 @@ public class PsvdTest {
     private HashMap<String, String> hmap;
 
 
-    public PsvdTest (String[] qps, String seqName, String frameRate, String totalFrames, String width, String height, String gopSize, String codeCbCr) {
+    public PsvdTest (String[] qps, String srcSeqPath, String seqName, String frameRate, String totalFrames, String width, String height, String gopSize, String codeCbCr) {
         this.qps = qps;
         this.seqName = seqName;
         this.frameRate = frameRate;
@@ -45,7 +45,7 @@ public class PsvdTest {
         this.gopSize = gopSize;
         this.codeCbCr = codeCbCr;
 
-        this.srcSeqPath = "common/yuv/";
+        this.srcSeqPath = srcSeqPath;
         hmap = new HashMap<>();
         hmap.put("OrgYuv", srcSeqPath+seqName+".yuv");
         hmap.put("Width", width);
@@ -63,7 +63,7 @@ public class PsvdTest {
 
     public static void main(String[] args) throws IOException {
         String[] qps = {"22", "27", "32", "37"};
-        PsvdTest psvdTest = new PsvdTest(qps, args[0], args[1], args[2], args[3], args[4], args[5], new String("true"));
+        PsvdTest psvdTest = new PsvdTest(qps, args[0], args[1], args[2], args[3], args[4], args[5], args[6], new String("true"));
         //make directories
         psvdTest.makeDirectory("./common/bits");
         psvdTest.makeDirectory("./Cfg/h265");
