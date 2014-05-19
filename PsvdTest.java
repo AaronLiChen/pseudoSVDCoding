@@ -120,8 +120,8 @@ public class PsvdTest {
                 Process h265EncoderProcess = runEXE("common/bin/TAppEncoder.exe -c common/cfg/encoder_randomaccess_main.cfg -c Cfg/h265/"+psvdTest.seqName+qp+".cfg");
                 // h265 TAppEncoder.exe log redirection
                 FileOutputStream h265Fos = new FileOutputStream("Out/h265/log/"+psvdTest.seqName+qp+".log");
-                ProcessStreamRedict h265Redict = new ProcessStreamRedict(h265EncoderProcess.getInputStream(), "OUTPUT", h265Fos);
-                h265Redict.start();
+                ProcessStreamRedirect h265Redirect = new ProcessStreamRedirect(h265EncoderProcess.getInputStream(), "OUTPUT", h265Fos);
+                h265Redirect.start();
                 DirMaker.createFile(new File("./Done/h265Encoder"+qp+".done"));
             }
         }
@@ -129,17 +129,19 @@ public class PsvdTest {
         for (String qp : qps) {
             if (!(new File("./Done/psvdResidueEncoder"+qp+".done").exists())) {
                 // run psvd TAppEncoder.exe
+                System.setOut(null);
                 Process  psvdEncoderProcess = runEXE("common/bin/TAppEncoder.exe -c common/cfg/encoder_randomaccess_main.cfg -c Cfg/psvd/"+psvdTest.seqName+"Residue"+qp+".cfg");
                 // psvd TAppEncoder.exe log redirection
                 FileOutputStream psvdFos = new FileOutputStream("Out/psvd/log/"+psvdTest.seqName+"Residue"+qp+".log");
-                ProcessStreamRedict psvdRedict = new ProcessStreamRedict(psvdEncoderProcess.getInputStream(), "OUTPUT", psvdFos);
-                psvdRedict.start();
+                ProcessStreamRedirect psvdRedirect = new ProcessStreamRedirect(psvdEncoderProcess.getInputStream(), "OUTPUT", psvdFos);
+                psvdRedirect.start();
                 try {
                     psvdEncoderProcess.waitFor();
                     DirMaker.createFile(new File("./Done/psvdResidueEncoder"+qp+".done"));
                 } catch (InterruptedException e) {
                     System.out.println(e.getMessage());
                 }
+                System.setOut(System.out);
             }
 
             // make decoder.xml

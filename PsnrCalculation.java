@@ -78,12 +78,14 @@ public class PsnrCalculation {
         picOrgList = new ArrayList<>(); 
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
         // read Org
-        rYCbCr.readPic(rFilename, width, height, totalFrames, picOrgList);
+        rYCbCr.startReading(rFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, totalFrames, picOrgList);
 
         picDecList = new ArrayList<>();
         rYCbCr = ReadYCbCr.getInstance();
         // read Dec
-        rYCbCr.readPic(rDecFilename, width, height, totalFrames - gopSize, picDecList);
+        rYCbCr.startReading(rDecFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, totalFrames - gopSize, picDecList);
     }
 
     private void calcPsnr () {

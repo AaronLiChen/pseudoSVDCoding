@@ -34,7 +34,7 @@ public class StackGops extends MatrixCreationAndOperation {
     public void matrixLineByLine (ArrayList<Picture> picList, int startFrame) {
         Picture srcPic = null;
         for (int frameNo = 0; frameNo < super.matWidth; frameNo++) {
-            srcPic = picList.get(frameNo + startFrame);
+            srcPic = picList.get((frameNo + startFrame) % picList.size());
             stackLineByLine(srcPic.getY(), super.arrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
             if (super.codeCbCr) {
                 stackLineByLine(srcPic.getCb(), super.arrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());
@@ -46,6 +46,7 @@ public class StackGops extends MatrixCreationAndOperation {
     public void matrixColByCol (ArrayList<Picture> picList, int startFrame) {
         Picture srcPic = null;
         for (int frameNo = 0; frameNo < super.matWidth; frameNo++) {
+            srcPic = picList.get((frameNo + startFrame) % picList.size());
             stackColByCol(srcPic.getY(), super.arrY, frameNo, srcPic.getWidth(), srcPic.getHeight());
             if (super.codeCbCr) {
                 stackColByCol(srcPic.getCb(), super.arrCb, frameNo, srcPic.getWidthC(), srcPic.getHeightC());

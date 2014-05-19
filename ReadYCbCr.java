@@ -11,6 +11,8 @@ public class ReadYCbCr
 	private static ReadYCbCr readYCbCrSingleton;
 
 	private DataInputStream dis;
+
+	private DataInputStream disData;
 	private byte[] oneLineY;
 	private byte[] oneLineCbCr;
 	
@@ -25,26 +27,46 @@ public class ReadYCbCr
 		return readYCbCrSingleton;
 	}
 
-	public void readPic(String filename, int width, int height, int framesToBeCoded, ArrayList<Picture> picList) {
+	public void readPic(int width, int height, int startFrame, int framesToBeCoded, ArrayList<Picture> picList) {
 		int widthC = width >> 1;
 		int heightC = height >> 1;
-        startReading(filename, width, widthC);
             
-        for (int framesNo = 0; framesNo < framesToBeCoded; framesNo++) {
-            Picture picTemp = new Picture(width, height);
+        for (int framesNo = startFrame; framesNo < startFrame + framesToBeCoded; framesNo++) {
+        	Picture picTemp;
+        	if (startFrame == 0) {
+        		picTemp = new Picture(width, height);
+        		//System.out.println(framesNo+"size:"+picList.size());
+        		picList.add(picTemp); 
+        	} else {
+        		picTemp = picList.get(framesNo % picList.size());
+        		//System.out.println(framesNo+"nosizeup,size:"+picList.size());
+        	}
             readPlane(picTemp.getY(), oneLineY, width, height); 
             readPlane(picTemp.getCb(), oneLineCbCr, widthC, heightC);  
             readPlane(picTemp.getCr(), oneLineCbCr, widthC, heightC);  
-            picList.add(picTemp); 
         }
-
-        endReading();
 	} 
 	
-	private void startReading(String filename, int width, int widthC) {
+	public void startReading(String filename, int width, int widthC) {
 		try
 		{
 			dis = new DataInputStream(new BufferedInputStream(
+					new FileInputStream(filename)));
+            
+			oneLineY = new byte[width];
+			oneLineCbCr = new byte[widthC];
+		} 
+		
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void startReading(DataInputStream disData, String filename, int width, int widthC) {
+		try
+		{
+			disData = new DataInputStream(new BufferedInputStream(
 					new FileInputStream(filename)));
             
 			oneLineY = new byte[width];
@@ -79,7 +101,16 @@ public class ReadYCbCr
 
 	}
 
-	private void endReading() {
+	public void endReading(DataInputStream disData) {
+		try {
+			disData.close();
+		}
+		catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void endReading() {
 		try {
 			dis.close();
 		}
@@ -110,7 +141,7 @@ public class ReadYCbCr
 
 	public boolean readData(String filename, List<LinkedList<Integer>> srcList, int total, boolean codeCbCr) {
 		try {
-			startReading(filename, 0, 0);
+			startReading(disData, filename, 0, 0);
 			readData(srcList.get(0), total, 0);
 			if (codeCbCr) {
 				readData(srcList.get(1), total, 1);
@@ -122,7 +153,7 @@ public class ReadYCbCr
 			return false;
 		}
 		finally {
-			endReading();
+			endReading(disData);
 			return true;
 		}
 	}

@@ -26,8 +26,10 @@ public class Encoder {
         String rFilename = paraMap.get("OrgYuv");
         ArrayList<Picture> picList = new ArrayList<>();
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
+        
         // read org pics
-        rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
+        rYCbCr.startReading(rFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, gopSize, picList);
 
 
         /* start the encoding process */
@@ -88,7 +90,8 @@ public class Encoder {
         wYCbCr.startWriting(wResidueFilename, residueWidth, residueWidth >> 2);
 
         for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
-            // read following YCbCr
+            // read following YCbCr and stack Line By Line
+            rYCbCr.readPic(width, height, gopNo * gopSize, gopSize, picList);
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
             // stack gop matrix to one-col vector
             stackedToOneColVector.operateMatrix(stackedGop.getMatrix());
@@ -123,6 +126,8 @@ public class Encoder {
             // String wFilename = new String("ResidueRefined.txt");
             // wYCbCr.writeTxt(wFilename, psvdOperation.getResidue()[0]);
         }
+        // end reading Org Pics
+        rYCbCr.endReading();
         // end writing Residue
         wYCbCr.endWriting();
 
@@ -189,8 +194,10 @@ public class Encoder {
         String rFilename = paraMap.get("OrgYuv");
         ArrayList<Picture> picList = new ArrayList<>();
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
+
         // read org pics
-        rYCbCr.readPic(rFilename, width, height, totalFrames, picList);
+        rYCbCr.startReading(rFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, gopSize, picList);
 
 
         /* start the encoding process */
@@ -251,7 +258,8 @@ public class Encoder {
         wYCbCr.startWriting(wResidueFilename, residueWidth, residueWidth >> 2);
 
         for (int gopNo = 1; gopNo < totalFrames / gopSize; gopNo++) {
-            // read following YCbCr
+            // read following YCbCr and stack Line By Line
+            rYCbCr.readPic(width, height, gopNo * gopSize, gopSize, picList);
             stackedGop.matrixLineByLine(picList, gopNo * gopSize);
             // stack gop matrix to one-col vector
             stackedToOneColVector.operateMatrix(stackedGop.getMatrix());
@@ -286,6 +294,8 @@ public class Encoder {
             // String wFilename = new String("ResidueRefined.txt");
             // wYCbCr.writeTxt(wFilename, psvdOperation.getResidue()[0]);
         }
+        // end reading Org Pics
+        rYCbCr.endReading();
         // end writing Residue
         wYCbCr.endWriting();
 

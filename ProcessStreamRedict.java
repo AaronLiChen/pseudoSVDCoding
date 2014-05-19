@@ -7,14 +7,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-class ProcessStreamRedict extends Thread  {
+class ProcessStreamRedirect extends Thread  {
     InputStream is;
     String      type;
     OutputStream os;
-    ProcessStreamRedict(InputStream is, String type) {
+    ProcessStreamRedirect(InputStream is, String type) {
         this(is, type, null);
     }
-    ProcessStreamRedict(InputStream is, String type, OutputStream redirect) {
+    ProcessStreamRedirect(InputStream is, String type, OutputStream redirect) {
         this.is = is;
         this.type = type;
         this.os = redirect;
@@ -30,7 +30,7 @@ class ProcessStreamRedict extends Thread  {
             while ((line = br.readLine()) != null) {
                 if (pw != null)
                     pw.println(line);
-                System.out.println(type + ">" + line);
+                //System.out.println(type + ">" + line);
             }
             if (pw != null)
                 pw.flush();

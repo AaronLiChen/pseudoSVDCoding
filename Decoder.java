@@ -24,7 +24,11 @@ public class Decoder {
         String rFilename = paraMap.get("OrgYuv");
         ArrayList<Picture> picList = new ArrayList<>();
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
-        rYCbCr.readPic(rFilename, width, height, gopSize, picList);
+
+        // read first gopSize org pics
+        rYCbCr.startReading(rFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, gopSize, picList);
+        rYCbCr.endReading();
 
         /* start the encoding process */
 
@@ -68,8 +72,10 @@ public class Decoder {
         String rResidueFilename = paraMap.get("ResYuv");
         ArrayList<Picture> picResidueList = new ArrayList<>();
         rYCbCr = ReadYCbCr.getInstance();
+        // start read Residue
+        rYCbCr.startReading(rResidueFilename, width, width >> 1);
+
         // input residue pre-operation
-        rYCbCr.readPic(rResidueFilename, width, height, (totalFrames - gopSize), picResidueList);
         StackGops stackedResidueGop = new StackGops(width * height, gopSize, codeCbCr);
         MatrixCreationAndOperation stackedResidueToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         Matrix mat127 = new Matrix(width * height * gopSize, 1, 127);
@@ -108,7 +114,9 @@ public class Decoder {
             // psvd
             System.out.println("gopNo: "+gopNo);
 
-            // write dec.yuv
+            // read Residue
+            rYCbCr.readPic(width, height, (gopNo - 1) * gopSize, gopSize, picResidueList);
+            // stack residue
             stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
             stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
             stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normalization);
@@ -116,9 +124,12 @@ public class Decoder {
                 stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normalization);
                 stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normalization);
             }
+            // write dec.yuv
             wYCbCr.writeMatColByCol(invPsvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix(), diagLinkedListIt), gopSize, width * height, codeCbCr);
         }
-        // end writing Residue
+        // end reading Residue
+        rYCbCr.endReading();
+        // end writing dec.yuv
         wYCbCr.endWriting();
 
         // diag.mat Binarization
@@ -161,7 +172,11 @@ public class Decoder {
         String rFilename = paraMap.get("OrgYuv");
         ArrayList<Picture> picList = new ArrayList<>();
         ReadYCbCr rYCbCr = ReadYCbCr.getInstance();
-        rYCbCr.readPic(rFilename, width, height, gopSize, picList);
+        
+        // read first gopSize org pics
+        rYCbCr.startReading(rFilename, width, width >> 1);
+        rYCbCr.readPic(width, height, 0, gopSize, picList);
+        rYCbCr.endReading();
 
         /* start the encoding process */
 
@@ -205,8 +220,10 @@ public class Decoder {
         String rResidueFilename = paraMap.get("ResYuv");
         ArrayList<Picture> picResidueList = new ArrayList<>();
         rYCbCr = ReadYCbCr.getInstance();
+        // start read Residue
+        rYCbCr.startReading(rResidueFilename, width, width >> 1);
+
         // input residue pre-operation
-        rYCbCr.readPic(rResidueFilename, width, height, (totalFrames - gopSize), picResidueList);
         StackGops stackedResidueGop = new StackGops(width * height, gopSize, codeCbCr);
         MatrixCreationAndOperation stackedResidueToOneColVector = new StackToOneCol(width * height * gopSize, 1, codeCbCr);
         Matrix mat127 = new Matrix(width * height * gopSize, 1, 127);
@@ -245,7 +262,9 @@ public class Decoder {
             // psvd
             System.out.println("gopNo: "+gopNo);
 
-            // write dec.yuv
+            // start read Residue
+            rYCbCr.readPic(width, height, (gopNo - 1) * gopSize, gopSize, picResidueList);
+            // stack residue
             stackedResidueGop.matrixLineByLine(picResidueList, (gopNo - 1) * gopSize);
             stackedResidueToOneColVector.operateMatrix(stackedResidueGop.getMatrix());
             stackedResidueToOneColVector.getMatrix(0).minusEquals(mat127).timesEquals(1.0/normalization);
@@ -253,9 +272,12 @@ public class Decoder {
                 stackedResidueToOneColVector.getMatrix(1).minusEquals(mat127CbCr).timesEquals(1.0/normalization);
                 stackedResidueToOneColVector.getMatrix(2).minusEquals(mat127CbCr).timesEquals(1.0/normalization);
             }
+            // write dec.yuv
             wYCbCr.writeMatColByCol(invPsvdOperation.invPsvd(stackedResidueToOneColVector.getMatrix(), diagLinkedListIt), gopSize, width * height, codeCbCr);
         }
-        // end writing Residue
+        // end reading Residue
+        rYCbCr.endReading();
+        // end writing dec.yuv
         wYCbCr.endWriting();
 
         // diag.mat Binarization
