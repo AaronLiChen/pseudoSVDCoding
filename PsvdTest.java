@@ -86,7 +86,7 @@ public class PsvdTest {
         DomXmlDocument dxd = new DomXmlDocument();
 
         // make encoder.xml
-        psvdTest.hmap.put("ResYuv", psvdTest.srcSeqPath+psvdTest.seqName+"Residue.yuv");
+        psvdTest.hmap.put("ResYuv", "common/yuv/"+psvdTest.seqName+"Residue.yuv");
         dxd.createXmlFromTemplate("common/xml/encoder.xml", "./Out/psvd/xml/encoder.xml", psvdTest.hmap);
         // encode
         if (!(new File("./Done/encoder.done").exists())) {
@@ -200,8 +200,8 @@ public class PsvdTest {
                 File psvdCfg = new File("./Cfg/psvd/"+seqName+"Residue"+qp+".cfg");
                 DirMaker.createFile(h265Cfg);
                 DirMaker.createFile(psvdCfg);
-                writeParaToCfg(h265Cfg, "Out/h265/", seqName, frameRate, frameSkip, width, height, String.valueOf(Integer.parseInt(totalFrames) - Integer.parseInt(gopSize)), qp);
-                writeParaToCfg(psvdCfg, "Out/psvd/", seqName+"Residue", frameRate, "0", width, height, totalFrames, qp);
+                writeParaToCfg(h265Cfg, this.srcSeqPath, "Out/h265/", seqName, frameRate, frameSkip, width, height, String.valueOf(Integer.parseInt(totalFrames) - Integer.parseInt(gopSize)), qp);
+                writeParaToCfg(psvdCfg, "common/yuv/", "Out/psvd/", seqName+"Residue", frameRate, "0", width, height, totalFrames, qp);
             }
             catch (IOException e) {
                 System.out.println("Can't create cfg files: "+e.getMessage());
@@ -209,7 +209,7 @@ public class PsvdTest {
         }
     }
 
-    private void writeParaToCfg (File file, String seqNamePath, String seqName, String frameRate, String frameSkip, String width, String height, String totalFrames, String qp) {
+    private void writeParaToCfg (File file, String srcSeqPath, String dstSeqPath, String seqName, String frameRate, String frameSkip, String width, String height, String totalFrames, String qp) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write("InputFile : "+srcSeqPath+seqName+".yuv\n");
@@ -219,8 +219,8 @@ public class PsvdTest {
             writer.write("SourceWidth : "+width+"\n");
             writer.write("SourceHeight : "+height+"\n");
             writer.write("FramesToBeEncoded : "+totalFrames+"\n");
-            writer.write("BitstreamFile : "+seqNamePath+"bits/"+seqName+qp+".bin\n");
-            writer.write("ReconFile : "+seqNamePath+"yuv/"+seqName+qp+"Rec.yuv\n");
+            writer.write("BitstreamFile : "+dstSeqPath+"bits/"+seqName+qp+".bin\n");
+            writer.write("ReconFile : "+dstSeqPath+"yuv/"+seqName+qp+"Rec.yuv\n");
             writer.write("QP : "+qp+"\n");
             writer.write("Level : 3.1\n");
 
