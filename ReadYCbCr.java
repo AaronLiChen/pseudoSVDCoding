@@ -68,6 +68,7 @@ public class ReadYCbCr
 		{
 			disData = new DataInputStream(new BufferedInputStream(
 					new FileInputStream(filename)));
+			this.disData = disData;
             
 			oneLineY = new byte[width];
 			oneLineCbCr = new byte[widthC];
@@ -127,7 +128,7 @@ public class ReadYCbCr
 		try {
 			int count = 0;
 			while (count < total) {
-				src.offer(dis.readInt());
+				src.offer(disData.readInt());
 				// System.out.println(src.peekLast());
 				count++;
 			}
