@@ -66,6 +66,7 @@ public class PsvdTest {
         PsvdTest psvdTest = new PsvdTest(qps, args[0], args[1], args[2], args[3], args[4], args[5], args[6], new String("true"));
         //make directories
         psvdTest.makeDirectory("./common/bits");
+        psvdTest.makeDirectory("./common/yuv");
         psvdTest.makeDirectory("./Cfg/h265");
         psvdTest.makeDirectory("./Cfg/psvd");
 
