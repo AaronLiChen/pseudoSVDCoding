@@ -204,7 +204,7 @@ public class PsvdTest {
                 DirMaker.createFile(h265Cfg);
                 DirMaker.createFile(psvdCfg);
                 writeParaToCfg(h265Cfg, this.srcSeqPath, "Out/h265/", seqName, frameRate, frameSkip, width, height, String.valueOf(Integer.parseInt(totalFrames) - Integer.parseInt(gopSize)), qp);
-                writeParaToCfg(psvdCfg, "common/yuv/", "Out/psvd/", seqName+"Residue", frameRate, "0", width, height, totalFrames, qp);
+                writeParaToCfg(psvdCfg, "common/yuv/", "Out/psvd/", seqName+"Residue", frameRate, "0", width, height, String.valueOf(Integer.parseInt(totalFrames) - Integer.parseInt(gopSize)), qp);
             }
             catch (IOException e) {
                 System.out.println("Can't create cfg files: "+e.getMessage());
