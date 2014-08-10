@@ -1,7 +1,7 @@
 package cn.edu.ustc.aaron.common;
 
-import cn.edu.ustc.aaron.encoder.*;
-import cn.edu.ustc.aaron.decoder.*;
+import cn.edu.ustc.aaron.encoder.Encoder;
+import cn.edu.ustc.aaron.decoder.Decoder;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,6 +10,10 @@ import java.io.PrintStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+
+import jj2000.j2k.encoder.*;
+import jj2000.j2k.decoder.*;
+import jj2000.j2k.*;
 
 public class PsvdTest {
 
@@ -62,7 +66,9 @@ public class PsvdTest {
     }
 
     public static void main(String[] args) throws IOException {
-        String[] qps = {"22", "27", "32", "37"};
+        String[] qps = {"40", "43", "47", "50"};
+        String[] jpeg2000RateY = {"0.0625", "0.0085", "0.0035", "0.001"};
+        String[] jpeg2000RateCbCr = {"0.016", "0.005", "0.001", "0.0006"};
         PsvdTest psvdTest = new PsvdTest(qps, args[0], args[1], args[2], args[3], args[4], args[5], args[6], new String("true"));
         //make directories
         psvdTest.makeDirectory("./common/bits");
@@ -127,7 +133,9 @@ public class PsvdTest {
             }
         }
 
-        for (String qp : qps) {
+        for (int qpIdx = 0; qpIdx < qps.length; qpIdx++) {
+            String qp = qps[qpIdx];
+
             if (!(new File("./Done/psvdResidueEncoder"+qp+".done").exists())) {
                 // run psvd TAppEncoder.exe
                 System.setOut(null);
@@ -143,6 +151,51 @@ public class PsvdTest {
                     System.out.println(e.getMessage());
                 }
                 System.setOut(System.out);
+            }
+
+            // jpeg2000 residue encode and decode
+            if (!(new File("./Done/jj2000Residue"+qp+".done").exists())) {
+                String c[] = {"y", "u", "v"};
+                String[] jj2000Rate = jpeg2000RateY;
+                PrintStream jj2000OutLog = null;
+
+                for (String component : c) {
+                    if (component.equals("y")) {
+                        jj2000Rate = jpeg2000RateY;
+                    } else {
+                        jj2000Rate = jpeg2000RateCbCr;
+                    }
+                    try {
+                        // redirect jj2000OutLog
+                        System.setOut(null);
+                        jj2000OutLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("Out/psvd/log/jj2000_"+component+qp+".log")));
+                        System.setOut(jj2000OutLog);
+
+                        // main process
+                        String argvEnc = "-i common/yuv/header.pgm,common/yuv/"+psvdTest.seqName+"Residue.yuv,"+component+","+psvdTest.width+","+psvdTest.height+","+String.valueOf(Integer.parseInt(psvdTest.totalFrames) - Integer.parseInt(psvdTest.gopSize))+" -o Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+component+".jp2 -rate "+jj2000Rate[qpIdx];
+                        String[] argvEncArr = argvEnc.split(" ");
+                        CmdLnEncoder.main(argvEncArr);
+
+                        String argvDec = "-i Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+component+".jp2 -o Out/psvd/yuv/"+psvdTest.seqName+"Residue"+qp+component+".pgm";
+                        String[] argvDecArr = argvDec.split(" ");
+                        CmdLnDecoder.main(argvDecArr);
+
+                        jj2000OutLog.close();
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    } finally {
+                        // close redirection
+                        jj2000OutLog.close();
+                        System.setOut(System.out);
+                    }
+                }
+
+                String argvConverter = "Out/psvd/yuv/"+psvdTest.seqName+"Residue"+qp+"y.pgm "+"Out/psvd/yuv/"+psvdTest.seqName+"Residue"+qp+"u.pgm "+"Out/psvd/yuv/"+psvdTest.seqName+"Residue"+qp+"v.pgm "+"Out/psvd/yuv/"+psvdTest.seqName+"Residue"+qp+"Rec.yuv";
+                String[] argvConverterArr = argvConverter.split(" ");
+                PGM3ToYUV420.main(argvConverterArr);
+
+                DirMaker.createFile(new File("./Done/jj2000Residue"+qp+".done"));
+                
             }
 
             // make decoder.xml
@@ -169,10 +222,28 @@ public class PsvdTest {
             }
             
 
-            // make psnr.xml and calc psnr
-            File resFile = new File("Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+".bin");
-            long resFileSize = resFile.length();
-            psvdTest.hmap.put("TotalBytes", String.valueOf(diagFileSize+resFileSize));
+            // // make psnr.xml and calc psnr
+            // File resFile = new File("Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+".bin");
+            // long resFileSize = resFile.length();
+            // psvdTest.hmap.put("TotalBytes", String.valueOf(diagFileSize+resFileSize));
+            // dxd.createXmlFromTemplate("common/xml/psnr.xml", "./Out/psvd/xml/psnr"+qp+".xml", psvdTest.hmap);
+            // // redirect decoderOutLog
+            // PrintStream psnrOutLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("Out/psvd/log/psnr"+qp+".log")));
+            // System.setOut(psnrOutLog);
+            // // calc psnr
+            // PsnrCalculation.calcPsnr("Out/psvd/xml/psnr"+qp+".xml");
+            // // close redirection
+            // psnrOutLog.close();
+            // System.setOut(System.out);
+
+            // jpeg2000 make psnr.xml and calc psnr
+            File resFileY = new File("Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+"y.jp2");
+            long resFileSizeY = resFileY.length();
+            File resFileU = new File("Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+"u.jp2");
+            long resFileSizeU= resFileU.length();
+            File resFileV = new File("Out/psvd/bits/"+psvdTest.seqName+"Residue"+qp+"v.jp2");
+            long resFileSizeV = resFileV.length();
+            psvdTest.hmap.put("TotalBytes", String.valueOf(diagFileSize+resFileSizeY+resFileSizeU+resFileSizeV));
             dxd.createXmlFromTemplate("common/xml/psnr.xml", "./Out/psvd/xml/psnr"+qp+".xml", psvdTest.hmap);
             // redirect decoderOutLog
             PrintStream psnrOutLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("Out/psvd/log/psnr"+qp+".log")));
